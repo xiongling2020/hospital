@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.KeshiMapper">
+    <select id="getKeshi" resultType="keshi">
+        SELECT * FROM keshi
+    </select>
+
+    <insert id="addKeshi" parameterType="keshi">
+        INSERT INTO keshi(keshiId,keshiName,keshiRenShu,keshiFuZheRen)
+        VALUES(#{keshiId,jdbcType=VARCHAR},#{keshiName,jdbcType=VARCHAR},
+        #{keshiRenShu,jdbcType=INTEGER},#{keshiFuZheRen,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="lookUpKeshi" resultType="keshi" parameterType="string">
+        SELECT * FROM keshi WHERE keshiId=#{keshiId}
+    </select>
+
+    <insert id="deleteKeshi" parameterType="string">
+        DELETE FROM keshi WHERE keshiId=#{keshiId}
+    </insert>
+
+    <update id="updateKeshi" parameterType="keshi">
+        UPDATE keshi SET keshiRenShu=#{keshiRenShu},keshiFuZheRen=#{keshiFuZheRen}
+        WHERE keshiId=#{keshiId}
+    </update>
+
+    <select id="selectKeshi" resultType="keshi" parameterType="string">
+        SELECT * FROM keshi WHERE keshiName=#{keshiName}
+    </select>
+</mapper>

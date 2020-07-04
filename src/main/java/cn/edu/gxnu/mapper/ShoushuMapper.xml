@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.ShoushuMapper">
+    <select id="getShoushu" resultType="shoushu">
+        SELECT * FROM shoushu
+    </select>
+
+    <insert id="addShoushu"  parameterType="shoushu">
+        INSERT INTO shoushu(shoushuId,doctorId,patientId,bingfangId,doctorName,patientName,startTime,overTime,
+                            shoushushi,hushiId,hushiName,guimo,xingzhi)
+        VALUES(#{shoushuId,jdbcType=VARCHAR},#{doctorId,jdbcType=VARCHAR},#{patientId,jdbcType=VARCHAR},
+               #{bingfangId,jdbcType=VARCHAR},#{doctorName,jdbcType=VARCHAR},#{patientName,jdbcType=VARCHAR},
+               #{startTime,jdbcType=TIMESTAMP},#{overTime,jdbcType=TIMESTAMP},#{shoushushi,jdbcType=VARCHAR},
+               #{hushiId,jdbcType=VARCHAR},#{hushiName,jdbcType=VARCHAR},#{guimo,jdbcType=VARCHAR},#{xingzhi,jdbcType=VARCHAR})
+        <!--此处若是jdbcType=DATE则插入的时间始终为00:00:00-->
+    </insert>
+
+    <insert id="deleteShoushu" parameterType="string">
+        DELETE FROM shoushu WHERE shoushuId=#{shoushuId}
+    </insert>
+
+    <update id="updateShoushu" parameterType="shoushu">
+        UPDATE shoushu SET startTime=#{startTime},overTime=#{overTime},shoushushi=#{shoushushi}
+        WHERE shoushuId=#{shoushuId}
+    </update>
+
+    <select id="selectShoushu" resultType="shoushu" parameterType="string">
+        SELECT * FROM shoushu WHERE shoushuId=#{shoushuId}
+    </select>
+
+    <select id="doctorSelectShoushu" resultType="shoushu" parameterType="string">
+        SELECT * FROM shoushu WHERE shoushuId=#{shoushuId} AND doctorId=#{doctorId}
+    </select>
+
+    <select id="hushiSelectShoushu" resultType="shoushu" parameterType="string">
+        SELECT * FROM shoushu WHERE shoushuId=#{shoushuId} AND hushiId=#{hushiId}
+    </select>
+
+    <select id="doctorViewShoushu" resultType="shoushu">
+        SELECT * FROM shoushu WHERE doctorName=#{doctorName} AND doctorId=#{doctorId}
+    </select>
+
+    <select id="hushiViewShoushu" resultType="shoushu">
+        SELECT * FROM shoushu WHERE hushiName=#{hushiName} AND hushiId=#{hushiId}
+    </select>
+</mapper>

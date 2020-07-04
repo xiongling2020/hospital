@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.DoctorMapper">
+    <select id="login" resultType="doctor" parameterType="Doctor">
+        SELECT * FROM doctor WHERE doctorLoginName=#{doctorLoginName} AND doctorPassword=#{doctorPassword}
+    </select>
+
+    <select id="getDoctorPermission"  resultType="Permission">
+        SELECT p.* FROM doctor d,rolesPermission rp,permission p
+        WHERE rp.permissionId=p.permissionId
+        AND d.rolesId=rp.rolesId
+        AND d.rolesId=#{rolesId}
+        AND d.doctorId=#{doctorId}
+    </select>
+
+    <select id="getDoctor" resultType="doctor">
+        SELECT * FROM doctor
+    </select>
+
+    <insert id="addDoctor" parameterType="doctor">
+        INSERT INTO doctor(doctorId,doctorName,doctorLoginName,doctorPassword,doctorSex,doctorAge,doctorKeshi,doctorPhone,doctorTitle)
+        VALUES(#{doctorId,jdbcType=VARCHAR},#{doctorName,jdbcType=VARCHAR},#{doctorLoginName,jdbcType=VARCHAR},
+               #{doctorPassword,jdbcType=VARCHAR},#{doctorSex,jdbcType=VARCHAR},#{doctorAge,jdbcType=INTEGER},
+               #{doctorKeshi,jdbcType=VARCHAR},#{doctorPhone,jdbcType=VARCHAR},#{doctorTitle,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="deleteDoctor" parameterType="string">
+        DELETE FROM doctor WHERE doctorId=#{doctorId}
+    </insert>
+
+    <update id="updateDoctor" parameterType="doctor">
+        UPDATE doctor SET doctorName=#{doctorName},doctorLoginName=#{doctorLoginName},
+                          doctorPassword=#{doctorPassword},doctorAge=#{doctorAge},
+                          doctorKeshi=#{doctorKeshi},doctorTitle=#{doctorTitle},
+                          doctorPhone=#{doctorPhone}
+        WHERE doctorId=#{doctorId}
+    </update>
+
+    <select id="lookUpDoctor" resultType="doctor" parameterType="Doctor">
+        SELECT * FROM doctor WHERE doctorId=#{doctorId}
+    </select>
+
+    <select id="selectDoctor" resultType="doctor" parameterType="string">
+        SELECT * FROM doctor WHERE doctorName=#{doctorName}
+    </select>
+
+    <update id="updateOwn" parameterType="doctor">
+        UPDATE doctor SET doctorName=#{doctorName},doctorLoginName=#{doctorLoginName},
+                          doctorAge=#{doctorAge}, doctorKeshi=#{doctorKeshi},
+                          doctorTitle=#{doctorTitle}, doctorPhone=#{doctorPhone}
+        WHERE doctorId=#{doctorId}
+    </update>
+
+    <update id="changePassword" parameterType="doctor">
+        UPDATE doctor SET doctorPassword=#{doctorPassword} WHERE doctorId=#{doctorId}
+    </update>
+
+    <select id="selectOwn" resultType="doctor" parameterType="Doctor">
+        SELECT * FROM doctor WHERE doctorId=#{doctorId}
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.MedicineMapper">
+    <select id="getMedicine" resultType="medicine">
+        SELECT * FROM medicine
+    </select>
+
+    <insert id="addMedicine" parameterType="medicine">
+        INSERT INTO medicine (medicineId,medicineName,buyingPrice,sellingPrice,medicineNo,shengchanshang,kucun)
+        VALUES(#{medicineId,jdbcType=VARCHAR},#{medicineName,jdbcType=VARCHAR},#{buyingPrice,jdbcType=INTEGER},
+        #{sellingPrice,jdbcType=INTEGER},#{medicineNo,jdbcType=VARCHAR},#{shengchanshang,jdbcType=VARCHAR},#{kucun,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="deleteMedicine" parameterType="string">
+        DELETE FROM medicine WHERE medicineId=#{medicineId}
+    </insert>
+
+    <select id="lookUpMedicine" resultType="medicine" parameterType="string">
+        SELECT * FROM medicine WHERE medicineId=#{medicineId}
+    </select>
+
+    <update id="updateMedicine" parameterType="medicine">
+        UPDATE medicine SET buyingPrice=#{buyingPrice},sellingPrice=#{sellingPrice},kucun=#{kucun}
+        WHERE medicineId=#{medicineId}
+    </update>
+
+    <select id="selectMedicine" resultType="medicine" parameterType="string">
+        SELECT * FROM medicine WHERE medicineName=#{medicineName}
+    </select>
+</mapper>

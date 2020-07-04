@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>医生查看个人信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script>
+        $(function () {
+            $.getJSON(
+                "doctor/getDoctorInfo",
+                function (data) {
+                    $.getJSON(
+                        "doctor/selectOwn",
+                        {"doctorId":data.doctorId},
+                        function (data) {
+                            $("#doctorId").val(data.doctorId);
+                            $("#doctorLoginName").val(data.doctorLoginName);
+                            $("#doctorPassword").val(data.doctorPassword);
+                            $("#doctorName").val(data.doctorName);
+                            $("#doctorSex").val(data.doctorSex);
+                            $("#doctorAge").val(data.doctorAge);
+                            $("#doctorKeshi").val(data.doctorKeshi);
+                            $("#doctorTitle").val(data.doctorTitle);
+                            $("#doctorPhone").val(data.doctorPhone);
+                        }
+                    )
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div>
+    <div id="about-dialog-text-area">
+        <div class="col-md-12 col-sm-12">
+            <h5 class="text-primary">我的基本信息</h5><hr>
+        </div>
+        <div style="margin-left: 200px;">
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">ID</label>
+                    <input type="text" id="doctorId" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">登录名</label>
+                    <input type="text" id="doctorLoginName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">密码</label>
+                    <input type="text" id="doctorPassword" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">姓名</label>
+                    <input type="text" id="doctorName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">性别</label>
+                    <input type="text" id="doctorSex" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">年龄</label>
+                    <input type="text" id="doctorAge" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">科室</label>
+                    <input type="text" id="doctorKeshi" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">职称</label>
+                    <input type="text" id="doctorTitle" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">联系方式</label>
+                    <input type="text" id="doctorPhone" style="width: 280px">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

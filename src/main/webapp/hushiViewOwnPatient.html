@@ -1,0 +1,493 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>护士查看自己病人信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <style>
+        #addPatient,#updatePatient,#lookUpPatient{
+            display: none;
+            margin: auto;
+            left:20%;
+            top:8%;
+            position: fixed;
+            background:#fff;
+            z-index: 10000;
+            font-size: 0;
+        }
+
+        .table th, .table td {/*设置表头，字段均居中*/
+            text-align: center;
+            vertical-align: middle!important;
+        }
+    </style>
+
+    <script>
+        myFunction();/*先声明*/
+
+        $(function () {
+            myFunction(1);//去首页
+        })
+
+        function cancelBtn(){
+            $("#updatePatient").hide();/*更新病人信息取消键*/
+            $("#addPatient").hide();/*添加病人信息取消键*/
+            $("#lookUpPatient").hide();/*查看病人信息返回键*/
+        }
+
+
+        function myFunction(pageNum) {
+            $.getJSON(
+                "hushi/getHushiInfo",
+                function (data) {
+                    $.ajax({
+                        url:'patient/hushiViewPatient',
+                        data:{"pageNum":pageNum,"hushiName":data.hushiName,"hushiId":data.hushiId},
+                        type:"POST",
+                        success:function (data) {
+                            showPatientDate(data); //显示病人数据
+                            showPageInfo(data);//显示分页信息
+                            showPageNum(data);//显示分页条数据
+                        }
+                    })
+                }
+            )
+        }
+
+        /*查看所有病人信息*/
+        function showPatientDate(data) {
+            $("#patient-tb tbody").empty();
+            tbody = $("<tbody>")
+            $.each(data.list, function (index, patient) {
+                tr = $("<tr>")
+                    .append($("<td>").text(patient.patientId))
+                    .append($("<td>").text(patient.patientName))
+                    .append($("<td>").text(patient.doctorName))
+                    .append($("<td>").text(patient.phone))
+                    .append($("<td>").text(patient.patientSex))
+                    .append($("<td>").text(patient.bingfangNo));
+                tdc = $("<td>").html('<a href="javascript:void(0)" onclick="lookUpPatient(this)">查看</a>&nbsp;' +
+                    '<a href="javascript:void(0)" onclick="updatePatient(this)">编辑</a>&nbsp;'+
+                    '<a href="javascript:void(0)" onclick="deletePatient(this)">删除</a>&nbsp;');
+                tr.append(tdc);
+                tbody.append(tr);
+            });
+            $("#patient-tb").append(tbody);
+        }
+
+        //显示分页信息
+        function showPageInfo(data){
+            //分页列表清空
+            $("#pageInfo").empty();//清空
+            $("#pageInfo").append("当前第"+data.pageNum+"页,总共"+data.pages+"页");
+        }
+
+        //显示分页条,点击分页能去下一页
+        function showPageNum(data){
+            $("#pageNum").empty();
+            var ul=$("<ul>").addClass("pagination");
+            var firstPageLi=$("<li>").append($("<a>").append("首页").attr("href","#"));//首页
+            var prePageLi = $("<li>").append($("<a>").append("«"));//前一页
+            if(data.hasPreviousPage == false){//如果没有前页的话，首页和前页隐藏
+                firstPageLi.addClass("disabled");
+                prePageLi.addClass("disabled");
+            }else{//为元素添加点击翻页的事件
+                firstPageLi.click(function(){//首页的点击事件
+                    myFunction(1);
+                })
+                prePageLi.click(function(){//前一页的点击事件
+                    myFunction(data.pageNum -1);
+                });
+            }
+
+            var nextPageLi = $("<li>").append($("<a>").append("»"));//后一页
+            var lastPageLi = $("<li>").append($("<a>").append("末页").attr("href","#")); //末页
+            if(data.hasNextPage == false){//如果没有下一页的话，下一页的末页隐藏
+                nextPageLi.addClass("disabled");
+                lastPageLi.addClass("disabled");
+            }else{
+                nextPageLi.click(function(){ //下一页的点击事件
+                    myFunction(data.pageNum +1);
+                });
+                lastPageLi.click(function(){//末页的点击事件
+                    myFunction(data.pages);
+                });
+            }
+
+            ul.append(firstPageLi).append(prePageLi);//添加首页和前一页的提示
+            $.each(data.navigatepageNums,function(index,num){//遍历给ul添加页码提示
+                var numLi = $("<li>").append($("<a>").append(num));
+                if(data.pageNum==num){//按钮加深颜色
+                    numLi.addClass("active");
+                }
+                numLi.click(function () {//页码的点击事件
+                    myFunction(num);
+                });
+                ul.append(numLi);//遍历给ul添加页码提示
+            });
+            ul.append(nextPageLi).append(lastPageLi);//添加下一页和末页的提示
+            var navEle=$("<nav>").append(ul);//把ul加入到nav元素中
+            navEle.appendTo("#pageNum");//把nav元素放到div中
+        }
+
+        /*$("#conAdd").click(function(){} 该方法存在累加绑定问题
+         $("#conAdd").one("click",function () {} 或者 $("#conAdd").off("click").on("click",function () {} 解决
+        （累加绑定：在页面中为一个元素绑定事件，事件执行后页面未刷新且元素还在，然后你再次点击，
+        元素又被绑定个一次点击事件，这样第二次点击就会执行两次，以此类推）
+        */
+
+        /*添加病人*/
+        function addPatient() {
+            $.getJSON(
+                "hushi/getHushiInfo",
+                function (data) {
+                    $("#addHushiId").val(data.hushiId);
+                    $("#addHushiName").val(data.hushiName);
+                    $("#addPatient").show()
+                    $("#conAdd").one("click",function (){
+                        $.ajax({
+                            url : 'patient/addPatient',
+                            method : 'POST',
+                            data : $("#addForm").serialize(),
+                            success : function(data) {
+                                if(data=="addOK"){
+                                    $("#addPatient").hide();
+                                    myFunction(1);//去首页
+                                }
+                            }
+                        });
+                    })
+                }
+            )
+        }
+
+        /*删除选择病人信息*/
+        function deletePatient(aEl) {
+            var patientId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $.ajax({
+                url:'patient/deletePatient',
+                data:{'patientId':patientId},
+                success:function(data){
+                    if(data=="deleteOK"){
+                        myFunction(1);//去首页
+                    }
+                }
+            });
+        }
+
+        /*更新病人信息*/
+        function updatePatient(aEl){
+            var patientId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $.ajax({
+                url:'patient/lookUpPatient',
+                data:{'patientId':patientId},
+                method : 'POST',
+                success:function(data){
+                    $("#patientId").val(data.patientId);
+                    $("#updateAge").val(data.patientAge);
+                    $("#updatePhone").val(data.phone);
+                    $("#updateBingfangNo").val(data.bingfangNo);
+                    $("#updateBingchuangNo").val(data.bingchuangNo);
+                    $("#updateDazhenshijian").val(data.dazhenshijian);
+                    $("#updateChafangshijian").val(data.chafangshijian);
+                    $("#updatePatient").show();
+                    $("#conUpdate").one("click",function () {
+                        $.ajax({
+                            url : 'patient/hushiUpdatePatient',
+                            method : 'POST',
+                            data : $("#upForm").serialize(),
+                            success : function(data) {
+                                if(data=="updateOK"){
+                                    $("#updatePatient").hide();
+                                    myFunction(1);//去首页
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+        }
+
+        /*查看选择病人信息(详细信息)*/
+        function lookUpPatient(aEl) {
+            var patientId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $("#lookUpPatient").show();
+            $.ajax({
+                url:'patient/lookUpPatient',
+                data:{'patientId':patientId},
+                method : 'POST',
+                success:function(data){
+                    $("#lookId").val(data.patientId);
+                    $("#lookName").val(data.patientName);
+                    $("#lookSex").val(data.patientSex);
+                    $("#lookAge").val(data.patientAge);
+                    $("#lookAddress").val(data.address);
+                    $("#lookGuomin").val(data.guomin);
+                    $("#lookPhone").val(data.phone);
+                    $("#lookBingchuangNo").val(data.bingchuangNo);
+                    $("#lookZhengZhuang").val(data.zhengZhuang);
+                    $("#lookZhuYuanRiQi").val(data.zhuYuanRiQi);
+                    $("#lookChuYuanRiQi").val(data.chuYuanRiQi);
+                    $("#lookYizhu").val(data.yizhu);
+                    $("#lookMedicine").val(data.medicine);
+                    $("#lookShoushushijian").val(data.shoushushijian);
+                    $("#lookChafang").val(data.chafangshijian);
+                    $("#lookDazhen").val(data.dazhenshijian);
+                }
+            });
+        }
+
+        /*根据名字查询某个病人的信息*/
+        $(function () {
+            $.getJSON(
+                "hushi/getHushiInfo",
+                function (data){
+                    $("#hushiId").val(data.hushiId);
+                    $("#selectPatient").one("click",function (){
+                        $.ajax({
+                            url : 'patient/hushiSelectPatient',
+                            method : 'POST',
+                            data : $("#patientSelectForm").serialize(),
+                            success : function(data) {
+                                if(data==""){
+                                    alert("该用户不存在")
+                                    $("#patientName").val("");/*刷新输入框*/
+                                }
+                                else{
+                                    $(".row").hide();
+                                    $("#patient-tb thead").remove();
+                                    thead=$("<thead>")
+                                    tr=$("<tr>").append($("<th>").text("ID"))
+                                        .append($("<th>").text("姓名"))
+                                        .append($("<th>").text("主治医师"))
+                                        .append($("<th>").text("联系方式"))
+                                        .append($("<th>").text("性别"))
+                                        .append($("<th>").text("病房编号"))
+                                        .append($("<th>").text("操作"));
+                                    thead.append(tr);
+                                    $("#patient-tb").append(thead);
+                                    $("#patient-tb tbody").remove();
+                                    tbody=$("<tbody>")
+                                    tr1 = $("<tr>").append($("<td>").text(data.patientId))
+                                        .append($("<td>").text(data.patientName))
+                                        .append($("<td>").text(data.doctorName))
+                                        .append($("<td>").text(data.phone))
+                                        .append($("<td>").text(data.patientSex))
+                                        .append($("<td>").text(data.bingfangNo));
+                                    tds = $("<td>").html('<a href="javascript:void(0)" onclick="lookUpPatient(this)">查看</a>&nbsp;' +
+                                        '<a href="javascript:void(0)" onclick="updatePatient(this)">编辑</a>&nbsp;'+
+                                        '<a href="javascript:void(0)" onclick="deletePatient(this)">删除</a>&nbsp;');
+                                    tr1.append(tds);
+                                    tbody.append(tr1);
+                                    $("#patient-tb").append(tbody);
+                                    $("#patientName").val("");/*刷新输入框*/
+                                }
+                            }
+                        });
+                    })
+                }
+            )
+        })
+
+        $(function () {
+            $.getJSON(
+                "doctor/getDoctor",
+                function (data) {
+                    $.each(data.list,function (index,doctor) {
+                        var nameOption=$("<option>").attr('value',doctor.doctorName).text(doctor.doctorName);
+                        var IdOption=$("<option>").attr('value',doctor.doctorId).text(doctor.doctorId);
+                        $("#addDoctorName").append(nameOption)
+                        $("#addDoctorId").append(IdOption)
+                    })
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div id="patient">
+    <div class="navbar-default" id="patientSelectDiv" >
+        <ol class="breadcrumb" style="height: 30px;">
+            <form method="POST" action="/patient/selectPatient" id="patientSelectForm" >
+                <div id="patientSelect" style="margin-top: -6px">
+                    <input type="text"   name="patientName" id="patientName"  placeholder="请输入病人姓名" >
+                    <input type="hidden" name="hushiId"     id="hushiId"  >
+                    <input type="button" value="查询"  id="selectPatient" class="button"/>
+                    <input type="button" value="添加"  style="float: right;color: brown;background-color: #faf2cc" onclick="addPatient()">
+                </div>
+            </form>
+        </ol>
+    </div>
+    <div id="tbDiv">
+        <table id="patient-tb" class="table table-striped table-hover table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>姓名</th>
+                <th>主治医师</th>
+                <th>联系方式</th>
+                <th>性别</th>
+                <th>病房编号</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6" id="pageInfo"> </div><!-- 分页文字信息 -->
+        <div class="col-md-6" id="pageNum" style="float: right;margin-top: -40px"> </div><!-- 分页条信息 -->
+    </div>
+
+    <div id="addPatient" style="border: 2px solid  #e7e7e7; width: 600px;height: 330px">
+        <h1 style="font-size: 25px;margin-left: 200px">&nbsp;添&nbsp;加&nbsp;病&nbsp;人&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="addForm" action="/patient/addPatient" class="form-horizontal"  method="POST" >
+            <div class="form-group">
+                <label for="patientName" class="col-sm-2 control-label"></label>
+                <div class="col-sm-4">
+                    <input type="hidden" class="form-control" id="addHushiName"   name="hushiName">
+                    <input type="hidden" class="form-control" id="addHushiId"     name="hushiId"  >
+                    <input type="text"   class="form-control" id="addName"        name="patientName"          placeholder="patientName"    style="margin-left: -80px">
+                    <select name="patientSex" id="addSex" class="form-control" style="margin-top:-35px;   margin-left: 110px">
+                        <option value="">请选择性别</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                    <input type="text"   class="form-control" id="addAge"         name="patientAge"           placeholder="patientAge"     style="margin-top:-35px;   margin-left: 300px">
+                    <input type="text"   class="form-control" id="addPhone"       name="phone"                placeholder="phone"          style="margin-top:5px;     margin-left: -80px ">
+                    <input type="text"   class="form-control" id="addZhuYuanRiQi" name="zhuYuanRiQi"          placeholder="zhuYuanRiQi"    style="margin-top:-35px;   margin-left: 110px">
+                    <input type="text"   class="form-control" id="addChuYuanRiQi" name="chuYuanRiQi"          placeholder="chuYuanRiQi"    style="margin-top:-35px;   margin-left: 300px">
+                    <input type="text"   class="form-control" id="addZhengZhuang" name="zhengZhuang"          placeholder="zhengZhuang"    style="margin-top:5px;     margin-left: -80px ">
+                    <select name="doctorName" id="addDoctorName" class="form-control" style="margin-top:-35px;   margin-left: 110px ">
+                    </select>
+                    <select name="doctorId"   id="addDoctorId"   class="form-control" style="margin-top:-35px;   margin-left: 300px">
+                    </select>
+                    <input type="text"   class="form-control" id="addBingfangNo"  name="bingfangNo"           placeholder="bingfangNo"     style="margin-top:5px;     margin-left: -80px">
+                    <input type="text"   class="form-control" id="addAddress"     name="address"              placeholder="address"        style="margin-top:-35px;   margin-left: 110px ">
+                    <input type="text"   class="form-control" id="addBingchuangNo"name="bingchuangNo"         placeholder="bingchuangNo"   style="margin-top:-35px;   margin-left: 300px">
+                    <input type="text"   class="form-control" id="addGuomin"      name="guomin"               placeholder="guomin"         style="margin-top:5px;     margin-left: -80px">
+                    <input type="text"   class="form-control" id="addYizhu"       name="yizhu"                placeholder="yizhu"          style="margin-top:-35px;   margin-left: 110px">
+                    <input type="text"   class="form-control" id="addMedicine"        name="medicine"         placeholder="midicine"       style="margin-top:-35px;   margin-left: 300px">
+                    <input type="text"   class="form-control" id="addChafangshijian"  name="chafangshijian"   placeholder="chafangshijian" style="margin-top:5px;     margin-left: -80px">
+                    <input type="text"   class="form-control" id="addDazhenshijian"   name="dazhenshijian"    placeholder="dazhenshijian"  style="margin-top:-35px;   margin-left: 110px">
+                    <input type="text"   class="form-control" id="addShoushushijian"  name="shoushushijian"   placeholder="shoushushijian" style="margin-top:-35px;   margin-left: 300px">
+                    <button id="conAdd"    type="button" class="btn btn-default" style="margin-left: 120px; margin-top: 10px">确认添加</button>
+                    <button id="cancelAdd" type="button" class="btn btn-default" style="margin-left: 220px; margin-top: -35px"onclick="cancelBtn()">取消</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="updatePatient" style="border: 1px solid; width: 600px;height: 220px">
+        <h1 style="font-size: 25px;margin-left: 200px">&nbsp;修&nbsp;改&nbsp;病&nbsp;人&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="upForm" >
+            <div class="form-group">
+                <table border="1" cellspacing="0">
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <tr height="40px" align="center" hidden>
+                        <td>ID</td>
+                        <td colspan="5"><input type="text" class="form-control" id="patientId" name="patientId" style="border: none;" ></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td>年龄</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateAge"    name="patientAge" style="border: none;"></td>
+                        <td>联系方式</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updatePhone"  name="phone" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td>打针时间</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateDazhenshijian" name="dazhenshijian" style="border: none;"></td>
+                        <td>查房时间</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateChafangshijian" name="chafangshijian" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td>病房编号</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateBingfangNo"   name="bingfangNo"   style="border: none;"></td>
+                        <td>病床号</td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateBingchuangNo" name="bingchuangNo" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td colspan="6">
+                            <button id="conUpdate"    type="button" class="btn btn-default" style="margin-left: -30px; ">确认修改</button>
+                            <button id="cancelUpdate" type="button" class="btn btn-default" style="margin-left: 10px;" onclick="cancelBtn()">取消</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+
+    <div id="lookUpPatient" style=" width: 600px;height: 350px">
+        <table border="1" cellspacing="0">
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <tr height="40px">
+                <td colspan="6" align="center">病例</td>
+            </tr>
+            <tr height="30px" align="center">
+                <td>姓名</td>
+                <td><input type="text" class="form-control" id="lookName" name="patientName" style="border: none;"></td>
+                <td>ID</td>
+                <td colspan="3"><input type="text" class="form-control" id="lookId" name="patientId" style="border: none;"></td>
+            </tr>
+            <tr height="35px" align="center">
+                <td>病床号</td>
+                <td><input type="text" class="form-control" id="lookBingchuangNo" name="bingchuangNo" style="border: none;"></td>
+                <td>性别</td>
+                <td><input type="text" class="form-control" id="lookSex"  name="patientSex" style="border: none;"></td>
+                <td>年龄</td>
+                <td><input type="text" class="form-control" id="lookAge"  name="patientAge" style="border: none;"></td>
+            </tr>
+            <tr height="30px" align="center">
+                <td>联系方式</td>
+                <td><input type="text" class="form-control" id="lookPhone" name="phone" style="border: none;"></td>
+                <td>住院日期</td>
+                <td><input type="text" class="form-control" id="lookZhuYuanRiQi" name="zhuYuanRiQi" style="border: none;"></td>
+                <td>出院日期</td>
+                <td><input type="text" class="form-control" id="lookChuYuanRiQi" name="chuYuanRiQi" style="border: none;"></td>
+            </tr>
+            <tr height="30px" align="center">
+                <td>居住地</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookAddress" name="adress" style="border: none;"></td>
+                <td>手术时间</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookShoushushijian" name="shoushushijian" style="border: none;"></td>
+            </tr>
+            <tr height="30px" align="center">
+                <td>查房时间</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookChafang" name="chafangshijian" style="border: none;"></td>
+                <td>打针时间</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookDazhen" name="dazhenshijian" style="border: none;"></td>
+            </tr>
+            <tr height="30px" align="center">
+                <td>药品</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookMedicine" name="medicine" style="border: none;"></td>
+                <td>过敏药物</td>
+                <td colspan="2"><input type="text" class="form-control" id="lookGuomin" name="guomin" style="border: none;"></td>
+            </tr>
+            <tr  height="35px" align="center">
+                <td>现病史</td>
+                <td colspan="5"><input type="text" class="form-control" id="lookZhengZhuang" name="zhengZhuang" style="border: none;"></td>
+            </tr>
+            <tr  height="35px" align="center">
+                <td>医嘱</td>
+                <td colspan="5"><input type="text" class="form-control" id="lookYizhu" name="yizhu" style="border: none;"></td>
+            </tr>
+            <tr  height="35px" align="center">
+                <td colspan="6"><button id="cancelLook" type="button" class="btn btn-default"  onclick="cancelBtn()">返回</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

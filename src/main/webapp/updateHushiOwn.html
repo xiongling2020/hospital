@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>护士修改个人信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script>
+        /*先根据登录时的Id查询该用户的所有信息，之后再修改*/
+        $(function () {
+            $.getJSON(
+                "hushi/getHushiInfo",
+                function (data) {
+                    $.getJSON(
+                        "hushi/selectOwn",
+                        {"hushiId":data.hushiId},
+                        function (data) {
+                            $("#hushiId").val(data.hushiId);
+                            $("#hushiLoginName").val(data.hushiLoginName);
+                            $("#hushiName").val(data.hushiName);
+                            $("#hushiAge").val(data.hushiAge);
+                            $("#hushiTitle").val(data.hushiTitle);
+                            $("#hushiPhone").val(data.hushiPhone);
+                            $("#updateBu").click(function () {
+                                $.ajax({
+                                    url:'hushi/updateOwn',
+                                    method : 'POST',
+                                    data : $("#hushiOwnForm").serialize(),
+                                    success : function(data) {
+                                        if(data=="updateOK"){
+                                            window.location.href='viewHushiOwn.html';
+                                        }
+                                    }
+                                })
+                            })
+                        }
+                    )
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div>
+    <div id="about-dialog-text-area">
+        <div class="col-md-12 col-sm-12">
+            <h5 class="text-primary">基本信息修改</h5><hr>
+        </div>
+        <div style="margin-left: 200px;">
+            <form id="hushiOwnForm">
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <input type="hidden" id="hushiId" name="hushiId" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <label class="input-group-addon" style="width: 100px">登录名</label>
+                        <input type="text" id="hushiLoginName" name="hushiLoginName" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <label class="input-group-addon" style="width: 100px">姓名</label>
+                        <input type="text" id="hushiName" name="hushiName" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <label class="input-group-addon" style="width: 100px">年龄</label>
+                        <input type="text" id="hushiAge" name="hushiAge" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <label class="input-group-addon" style="width: 100px">职称</label>
+                        <input type="text" id="hushiTitle" name="hushiTitle" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <label class="input-group-addon" style="width: 100px">联系方式</label>
+                        <input type="text" id="hushiPhone" name="hushiPhone" style="width: 280px">
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 form-group">
+                    <div class="input-group">
+                        <input type="button" id="updateBu" value="修改" style="margin-left: 180px">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

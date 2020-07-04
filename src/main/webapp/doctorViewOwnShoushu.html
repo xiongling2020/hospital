@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>医生查看自己的手术信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <style>
+        #updateShoushu,#addShoushu,#lookUpShoushu{
+            display: none;
+            margin: auto;
+            left:20%;
+            top:10%;
+            position: fixed;
+            background:#fff;
+            z-index: 10000;
+            font-size: 0;
+        }
+
+        .table th, .table td {/*设置表头，字段均居中*/
+            text-align: center;
+            vertical-align: middle!important;
+        }
+    </style>
+
+    <script>
+        myFunction();/*先声明*/
+
+        $(function () {
+            myFunction(1);//去首页
+        })
+
+        function cancelBtn(){
+            $("#updateShoushu").hide();/*更新手术信息取消键*/
+            $("#addShoushu").hide();/*添加手术信息取消键*/
+            $("#lookUpShoushu").hide();
+        }
+
+        function myFunction(pageNum) {
+            $.getJSON(
+                "doctor/getDoctorInfo",
+                function (data) {
+                    $.ajax({
+                        url:'shoushu/doctorViewShoushu',
+                        data:{"pageNum":pageNum,"doctorName":data.doctorName,"doctorId":data.doctorId},
+                        type:"POST",
+                        success:function (data) {
+                            showShoushuDate(data); //显示手术数据
+                            showPageInfo(data);//显示分页信息
+                            showPageNum(data);//显示分页条数据
+                        }
+                    })
+                }
+            )
+        }
+
+        /*查看所有手术信息*/
+        function showShoushuDate(data) {
+            $("#shoushu-tb tbody").empty();
+            tbody = $("<tbody>")
+            $.each(data.list, function (index, shoushu) {
+                tr = $("<tr>")
+                    .append($("<td>").text(shoushu.shoushuId))
+                    .append($("<td>").text(shoushu.patientName))
+                    .append($("<td>").text(shoushu.hushiName))
+                    .append($("<td>").text(shoushu.shoushushi))
+                    .append($("<td>").text(shoushu.startTime))
+                    .append($("<td>").text(shoushu.overTime));
+                tdc =$("<td>").html('<a href="javascript:void(0)" onclick="lookUpShoushu(this)">查看</a>&nbsp;' +
+                    '<a href="javascript:void(0)" onclick="updateShoushu(this)">编辑</a>&nbsp;'+
+                    '<a href="javascript:void(0)" onclick="deleteShoushu(this)">删除</a>&nbsp;');
+                tr.append(tdc);
+                tbody.append(tr);
+            });
+            $("#shoushu-tb").append(tbody);
+        }
+
+        //显示分页信息
+        function showPageInfo(data){
+            //分页列表清空
+            $("#pageInfo").empty();//清空
+            $("#pageInfo").append("当前第"+data.pageNum+"页,总共"+data.pages+"页");
+        }
+
+        //显示分页条,点击分页能去下一页
+        function showPageNum(data){
+            $("#pageNum").empty();
+            var ul=$("<ul>").addClass("pagination");
+            var firstPageLi=$("<li>").append($("<a>").append("首页").attr("href","#"));//首页
+            var prePageLi = $("<li>").append($("<a>").append("«"));//前一页
+            if(data.hasPreviousPage == false){//如果没有前页的话，首页和前页隐藏
+                firstPageLi.addClass("disabled");
+                prePageLi.addClass("disabled");
+            }else{//为元素添加点击翻页的事件
+                firstPageLi.click(function(){//首页的点击事件
+                    myFunction(1);
+                })
+                prePageLi.click(function(){//前一页的点击事件
+                    myFunction(data.pageNum -1);
+                });
+            }
+
+            var nextPageLi = $("<li>").append($("<a>").append("»"));//后一页
+            var lastPageLi = $("<li>").append($("<a>").append("末页").attr("href","#")); //末页
+            if(data.hasNextPage == false){//如果没有下一页的话，下一页的末页隐藏
+                nextPageLi.addClass("disabled");
+                lastPageLi.addClass("disabled");
+            }else{
+                nextPageLi.click(function(){ //下一页的点击事件
+                    myFunction(data.pageNum +1);
+                });
+                lastPageLi.click(function(){//末页的点击事件
+                    myFunction(data.pages);
+                });
+            }
+
+            ul.append(firstPageLi).append(prePageLi);//添加首页和前一页的提示
+            $.each(data.navigatepageNums,function(index,num){//遍历给ul添加页码提示
+                var numLi = $("<li>").append($("<a>").append(num));
+                if(data.pageNum==num){//按钮加深颜色
+                    numLi.addClass("active");
+                }
+                numLi.click(function () {//页码的点击事件
+                    myFunction(num);
+                });
+                ul.append(numLi);//遍历给ul添加页码提示
+            });
+            ul.append(nextPageLi).append(lastPageLi);//添加下一页和末页的提示
+            var navEle=$("<nav>").append(ul);//把ul加入到nav元素中
+            navEle.appendTo("#pageNum");//把nav元素放到div中
+        }
+
+        /*$("#conAdd").click(function(){} 该方法存在累加绑定问题
+         $("#conAdd").one("click",function () {} 或者 $("#conAdd").off("click").on("click",function () {} 解决
+        （累加绑定：在页面中为一个元素绑定事件，事件执行后页面未刷新且元素还在，然后你再次点击，
+        元素又被绑定个一次点击事件，这样第二次点击就会执行两次，以此类推）
+        */
+        /*添加手术信息*/
+        function addShoushu() {
+            $.getJSON(
+                "doctor/getDoctorInfo",
+                function (data) {
+                    $("#addDoctorId").val(data.doctorId);
+                    $("#addDoctorName").val(data.doctorName);
+                    $("#addShoushu").show()
+                    $("#conAdd").one("click",function (){
+                        $.ajax({
+                            url : 'shoushu/addShoushu',
+                            method : 'POST',
+                            data : $("#addForm").serialize(),
+                            success : function(data) {
+                                if(data=="addOK"){
+                                    $("#addShoushu").hide();
+                                    myFunction(1);//去首页
+                                }
+                            }
+                        });
+                    })
+                }
+            )
+        }
+
+
+        /*删除选择手术信息*/
+        function deleteShoushu(aEl) {
+            var shoushuId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $.ajax({
+                url:'shoushu/deleteShoushu',
+                data:{'shoushuId':shoushuId},
+                success:function(data){
+                    if(data=="deleteOK"){
+                        myFunction(1);//去首页
+                    }
+                }
+            });
+        }
+
+        /*查看选择手术信息(详细信息)*/
+        function lookUpShoushu(aEl) {
+            var shoushuId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $("#lookUpShoushu").show();
+            $.ajax({
+                url:'shoushu/selectShoushu',
+                data:{'shoushuId':shoushuId},
+                method : 'POST',
+                success:function(data){
+                    $("#lookId").val(data.shoushuId);
+                    $("#lookPatientId").val(data.patientId);
+                    $("#lookPatientName").val(data.patientName);
+                    $("#lookHushiId").val(data.hushiId);
+                    $("#lookHushiName").val(data.hushiName);
+                    $("#lookShoushushi").val(data.shoushushi);
+                    $("#lookStartTime").val(data.startTime);
+                    $("#lookOverTime").val(data.overTime);
+                    $("#lookGuimo").val(data.guimo);
+                    $("#lookXingzhi").val(data.xingzhi);
+                }
+            });
+        }
+
+        /*更新手术信息*/
+        function updateShoushu(aEl){
+            var shoushuId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $.ajax({
+                url:'shoushu/selectShoushu',
+                data:{'shoushuId':shoushuId},
+                method : 'POST',
+                success:function(data){
+                    $("#updateShoushuId").val(data.shoushuId);
+                    $("#updateShoushushi").val(data.shoushushi);
+                    $("#updateStartTime").val(data.startTime);
+                    $("#updateOverTime").val(data.overTime);
+                    $("#updateShoushu").show();
+                    $("#conUpdate").one("click",function (){
+                        $.ajax({
+                            url : 'shoushu/updateShoushu',
+                            method : 'POST',
+                            data : $("#upForm").serialize(),
+                            success : function(data) {
+                                if(data=="updateOK"){
+                                    $("#updateShoushu").hide();
+                                    myFunction(1);//去首页
+                                }
+                            }
+                        });
+                    })
+                }
+            });
+        }
+
+        /*根据id查询某场手术的信息*/
+        $(function () {
+            $.getJSON(
+                "doctor/getDoctorInfo",
+                function (data) {
+                    $("#doctorId").val(data.doctorId);
+                    $("#selectShoushu").one("click",function (){
+                        $.ajax({
+                            url : 'shoushu/doctorSelectShoushu',
+                            method : 'POST',
+                            data : $("#ShoushuSelectForm").serialize(),
+                            success : function(data) {
+                                if(data==""){
+                                    alert("没有该场手术")
+                                    $("#shoushuId").val("");/*刷新输入框*/
+                                }
+                                else{
+                                    $(".row").hide();
+                                    $("#shoushu-tb thead").remove();
+                                    thead=$("<thead>")
+                                    htr1=$("<tr>").append($("<th>").text("手术ID"))
+                                        .append($("<th>").text("病人"))
+                                        .append($("<th>").text("护士"))
+                                        .append($("<th>").text("手术室"))
+                                        .append($("<th>").text("开始时间"))
+                                        .append($("<th>").text("结束时间"))
+                                        .append($("<th>").text("操作"));
+                                    thead.append(htr1);
+                                    $("#shoushu-tb").append(thead);
+                                    $("#shoushu-tb tbody").remove();
+                                    tbody=$("<tbody>")
+                                    btr1 = $("<tr>").append($("<td>").text(data.shoushuId))
+                                        .append($("<td>").text(data.patientName))
+                                        .append($("<td>").text(data.hushiName))
+                                        .append($("<td>").text(data.shoushushi))
+                                        .append($("<td>").text(data.startTime))
+                                        .append($("<td>").text(data.overTime));
+                                    tds = $("<td>").html('<a href="javascript:void(0)" onclick="lookUpShoushu(this)">查看</a>&nbsp;' +
+                                        '<a href="javascript:void(0)" onclick="updateShoushu(this)">编辑</a>&nbsp;'+
+                                        '<a href="javascript:void(0)" onclick="deleteShoushu(this)">删除</a>&nbsp;');
+                                    btr1.append(tds);
+                                    tbody.append(btr1);
+                                    $("#shoushu-tb").append(tbody);
+                                    $("#shoushuId").val("");/*刷新输入框*/
+                                }
+                            }
+                        });
+                    })
+                }
+            )
+        })
+
+        $(function () {
+            $.getJSON(
+                "hushi/getHushi",
+                function (data) {
+                    $.each(data.list,function (index,hushi) {
+                        var nameOption=$("<option>").attr('value',hushi.hushiName).text(hushi.hushiName);
+                        var IdOption=$("<option>").attr('value',hushi.hushiId).text(hushi.hushiId);
+                        $("#addHushiName").append(nameOption)
+                        $("#addHushiId").append(IdOption)
+                    })
+                }
+            )
+        })
+
+        $(function () {
+            $.getJSON(
+                'patient/getPatient',
+                function (data) {
+                    $.each(data.list,function (index,patient) {
+                        var nameOption=$("<option>").attr('value',patient.patientName).text(patient.patientName);
+                        var IdOption=$("<option>").attr('value',patient.patientId).text(patient.patientId);
+                        $("#addPatientName").append(nameOption)
+                        $("#addPatientId").append(IdOption)
+                    })
+                }
+            )
+        })
+
+        $(function () {
+            $.getJSON(
+                'bingfang/getBingfang',
+                function (data) {
+                    $.each(data.list,function (index,bingfang) {
+                        var IdOption=$("<option>").attr('value',bingfang.bingfangId).text(bingfang.bingfangId);
+                        $("#addBingfangId").append(IdOption)
+                    })
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div id="shoushu">
+    <div class="navbar-default" id="shoushuSelectDiv" >
+        <ol class="breadcrumb" style="height: 30px;">
+            <form method="POST" action="/shoushu/doctorSelectShoushu" id="ShoushuSelectForm" >
+                <div id="shoushuSelect" style="margin-top: -6px">
+                    <input type="text"   name="shoushuId" id="shoushuId"  placeholder="请输入手术ID" >
+                    <input type="hidden" name="doctorId"  id="doctorId" >
+                    <input type="button" value="查询"  id="selectShoushu" class="button"/>
+                    <input type="button" value="添加"  style="float: right;color: brown;background-color: #faf2cc" onclick="addShoushu()">
+                </div>
+            </form>
+        </ol>
+    </div>
+
+    <div id="tbDiv">
+        <table id="shoushu-tb" class="table table-striped table-hover table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <th>手术ID</th>
+                <th>病人</th>
+                <th>护士</th>
+                <th>手术室</th>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6" id="pageInfo"> </div><!-- 分页文字信息 -->
+        <div class="col-md-6" id="pageNum" style="float: right;margin-top: -40px"> </div><!-- 分页条信息 -->
+    </div>
+
+    <div id="addShoushu" style="border: 2px solid  #e7e7e7; width: 500px;height: 350px">
+        <h1 style="font-size: 25px;margin-left: 150px">&nbsp;添&nbsp;加&nbsp;手&nbsp;术&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="addForm" action="/patient/addPatient" class="form-horizontal"  method="POST" >
+            <div class="form-group">
+                <label for="shoushuId" class="col-sm-4 control-label"></label>
+                <div class="col-sm-6">
+                    <input type="hidden" class="form-control" id="addDoctorId"    name="doctorId"  >
+                    <input type="hidden" class="form-control" id="addDoctorName"  name="doctorName">
+                    <input type="text"   class="form-control" id="addShoushushi"  name="shoushushi"    placeholder="shoushushi"  style="margin-top:5px ;   margin-left: -160px">
+                    <select name="bingfangId"   id="addBingfangId"   class="form-control"   style="margin-top:-35px;  margin-left: 80px">
+                    </select>
+
+                    <select name="hushiName" id="addHushiName" class="form-control"   style="margin-top:15px ;  margin-left: -160px">
+                    </select>
+
+                    <select name="hushiId"   id="addHushiId"   class="form-control"   style="margin-top:-35px;  margin-left: 80px">
+                    </select>
+
+                    <select name="patientName" id="addPatientName" class="form-control"   style="margin-top:15px ;  margin-left: -160px">
+                    </select>
+
+                    <select name="patientId"   id="addPatientId"   class="form-control"   style="margin-top:-35px;  margin-left: 80px">
+                    </select>
+
+                    <input type="text"   class="form-control" id="addStartTime"   name="startTime"     placeholder="startTime"   style="margin-top:15px;    margin-left: -160px">
+                    <input type="text"   class="form-control" id="addOverTime"    name="overTime"      placeholder="overTime"    style="margin-top:-35px;   margin-left: 80px">
+                    <select name="guimo" id="addGuimo" class="form-control" style="margin-top:15px; margin-left: -160px">
+                        <option value="">请选择规模</option>
+                        <option value="小">小</option>
+                        <option value="中">中</option>
+                        <option value="大">大</option>
+                    </select>
+                    <select name="xingzhi"  id="addXingzhi" class="form-control" style="margin-top:-35px; margin-left: 80px">
+                        <option value="">请选择性质</option>
+                        <option value="住院">住院</option>
+                        <option value="非住院">非住院</option>
+                    </select>
+                    <button id="conAdd"    type="button" class="btn btn-default" style="margin-left: -10px; margin-top: 10px">确认添加</button>
+                    <button id="cancelAdd" type="button" class="btn btn-default" style="margin-left: 10px;  margin-top: 10px" onclick="cancelBtn()">取消</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="updateShoushu" style="border: 1px solid ; width: 600px;height: 220px">
+        <h1 style="font-size: 25px;margin-left: 200px">&nbsp;修&nbsp;改&nbsp;手&nbsp;术&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="upForm" >
+            <div class="form-group">
+                <table border="1" cellspacing="0">
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <tr height="40px" align="center" hidden>
+                        <td><input type="text" class="form-control" value="手术ID"  style="border: none;"></td>
+                        <td colspan="5"><input type="text" class="form-control" id="updateShoushuId"  name="shoushuId"  style="border: none;" ></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="开始时间"  style="border: none;"></td>
+                        <td colspan="5"><input type="text" class="form-control" id="updateStartTime"  name="startTime" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="结束时间"  style="border: none;"></td>
+                        <td colspan="5"><input type="text" class="form-control" id="updateOverTime"   name="overTime" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="手术室"  style="border: none;"></td>
+                        <td colspan="5"><input type="text" class="form-control" id="updateShoushushi" name="shoushushi"  style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td colspan="6">
+                            <button id="conUpdate"    type="button" class="btn btn-default" style="margin-left: -30px; ">确认修改</button>
+                            <button id="cancelUpdate" type="button" class="btn btn-default" style="margin-left: 10px;" onclick="cancelBtn()">取消</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+
+    <div id="lookUpShoushu" style="border:1px solid;width: 600px;height: 300px">
+        <h1 style="font-size: 25px;margin-left: 200px">&nbsp;我&nbsp;的&nbsp;手&nbsp;术&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <table border="1" cellspacing="0">
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <tr height="40px" align="center">
+                <td><input type="text" class="form-control" value="手术室"  style="border: none;"></td>
+                <td><input type="text" class="form-control" id="lookShoushushi" name="shoushushi" style="border: none"></td>
+                <td><input type="text" class="form-control" value="手术ID"  style="border: none;"></td>
+                <td colspan="3"><input type="text" class="form-control" id="lookId" name="shoushuId" style="border: none"></td>
+            </tr>
+            <tr height="40px" align="center">
+                <td><input type="text" class="form-control" value="病人姓名"  style="border: none;"></td>
+                <td><input type="text" class="form-control" id="lookPatientName" name="patientName"  style="border: none;"></td>
+                <td><input type="text" class="form-control" value="病人ID"  style="border: none;"></td>
+                <td colspan="3"><input type="text" class="form-control" id="lookPatientId"   name="patientId" style="border: none;"></td>
+            </tr>
+            <tr height="40px" align="center">
+                <td><input type="text" class="form-control" value="护士姓名"  style="border: none;"></td>
+                <td><input type="text" class="form-control" id="lookHushiName" name="hushiName"  style="border: none"></td>
+                <td><input type="text" class="form-control" value="护士ID"  style="border: none;"></td>
+                <td colspan="3"><input type="text" class="form-control" id="lookHushiId" name="hushiId" style="border: none"></td>
+            </tr>
+            <tr height="40px" align="center">
+                <td><input type="text" class="form-control" value="开始时间"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookStartTime"  name="startTime" style="border: none;"></td>
+                <td><input type="text" class="form-control" value="结束时间"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookOverTime"   name="overTime"  style="border: none;"></td>
+            </tr>
+            <tr height="40px" align="center">
+                <td><input type="text" class="form-control" value="手术规模"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookGuimo"  name="guimo" style="border: none;"></td>
+                <td><input type="text" class="form-control" value="手术性质"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookXingzhi" name="xingzhi"  style="border: none;"></td>
+            </tr>
+            <tr height="40px" align="center">
+                <td colspan="6"><button id="cancelLook" type="button" class="btn btn-default"  onclick="cancelBtn()">返回</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

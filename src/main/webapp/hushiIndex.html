@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=yes,
+     initial-scale=0.3, maxmum-scale=1.0, minimum-scale=0.3">
+    <title>医院管理系统护士主页</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script>
+        $(function () {
+           $.getJSON(
+               "hushi/getHushiInfo",
+               function (data) {
+                   $.getJSON(
+                       "hushi/selectOwn",
+                       {"hushiId":data.hushiId},
+                       function (data) {
+                           $("#hushiName").text(data.hushiName);
+                           $.getJSON(
+                               "hushi/getHushiPermission",
+                               {"rolesId":data.rolesId,"hushiId":data.hushiId},/*传护士id到后台*/
+                               function (permissions) {
+                                   parentPermissions=new Array();
+                                   childPermissions=new Array();
+                                   $.each(permissions,function(index,permission){
+                                       if(permission.isParent=="true" && permission.pId!=null){
+                                           parentPermissions.push(permission);
+                                       }else {
+                                           childPermissions.push(permission);
+                                       }
+                                   });
+
+                                   $.each(parentPermissions,function(i,parentP){
+                                       var div1=$("<div>").attr("class","panel panel-default");
+                                       var div2=$("<div>").attr("class","panel-heading");
+                                       var h4=$("<h4>").attr("class","panel-title");
+                                       var a=$("<a>").attr("onclick","getParentName(this)").attr("data-toggle","collapse").attr("data-parent","#accordion").attr("href","#collapse"+i).text(parentP.name);
+                                       var sp=$("<span>").attr("class","glyphicon glyphicon-menu-right pull-right");
+                                       a.append(sp);
+                                       h4.append(a)
+                                       div2.append(h4);
+                                       div1.append(div2);
+                                       var div3=$("<div>").attr("class","panel-collapse collapse").attr("id","collapse"+i);
+                                       $.each(childPermissions,function(j,childP){
+                                           $("#add").text(childP.name)
+                                           if(childP.pId==parentP.permissionId){
+                                               if(childP.url!=null){
+                                                   div3.append($("<div>").attr("class","panel-body").append($("<li>"))
+                                                       .append($("<a>").attr("onclick","getChildName(this)").attr("href",childP.url).text(childP.name).attr("target","if1").attr("class","glyphicon glyphicon-unchecked")
+                                                           /*此处target一定要有，并且与下面的iframe的id一致 https://blog.csdn.net/qq_29011851/article/details/73172336*/
+                                                       ));
+                                                   div1.append(div3);
+                                               }
+                                           }
+                                       });
+                                       $("#accordion").append(div1);
+                                   });
+                               })
+                       }
+                   )
+               }
+           )
+        })
+
+        function getParentName(obj) {
+            var parentName1=obj.innerHTML;
+            var parentName2=parentName1.match(/(\S*)</)[1];/*截取，只要”个人信息管理“*/
+            /*var value=$('.panel-body').parent().attr('class')/!*根据class=‘panel-body’往上找自己想要的class的值*!/
+            if(value=="panel-collapse collapse"){
+                obj.innerHTML=parentName2+"<span class=\"glyphicon glyphicon-menu-down pull-right\"></span>"
+            } else {
+                obj.innerHTML=parentName2+"<span class=\"glyphicon glyphicon-menu-right pull-right\"></span>"
+            }*/
+            $("#parentName").text(parentName2);
+        }
+
+        function getChildName(obj) {
+            $("#Amain").hide();
+            $("#childName").text(obj.innerHTML)
+        }
+
+        /*注销*/
+        function logOff() {
+            location.href="/hospital/login.html";
+        }
+
+        (function(doc, win) {
+            var docEl = doc.documentElement,
+                resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+                recalc = function() {
+                    var clientWidth = docEl.clientWidth;
+                    if (!clientWidth) return;
+                    if(clientWidth >= 2560){
+                        docEl.style.fontSize = '200px';
+                    }else if(clientWidth <= 600){
+                        docEl.style.fontSize = '32px';
+                    }else{
+                        docEl.style.fontSize = 100 * (clientWidth / 1920) + 'px';
+                    }
+                };
+            if (!doc.addEventListener) return;
+            win.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener('DOMContentLoaded', recalc, false);
+        })(document, window);
+    </script>
+    <style>
+        body{
+            height: 400px;
+        }
+        /* 768手机端的宽度*/
+        @media (min-width: 768px) {
+            #slider-left{
+                background-color: #F5F5F5;
+                width: 170px;
+                height: 510px;
+                position: absolute;
+                left:0;
+                top: 70px;
+            }
+        }
+
+        .nav-ul-right{
+            min-width: 250px;
+            margin-top: 10px;
+            margin-right: -50px;
+        }
+
+        .navbar{
+            background-color: #056DAA;
+            border-bottom: 1px solid #c3bad7;
+            height: 70px;
+            position: relative;
+        }
+
+        .collapse{
+            background-color: #faf2cc;
+        }
+
+        #leftbar{
+            margin-top:50px;
+        }
+
+        #page_main{
+            height: 510px;
+            margin-left: 175px;
+            margin-top: -38px;
+            background-color: white;
+        }
+
+        a,a:visited,a:active,a:hover ,a:link{
+            text-decoration: none;
+        }
+
+        #Amain{
+            margin-top: -15px;
+            background:url(images/loginImages/zhubeijing.jpg ) no-repeat;
+            background-position: center 0;
+            background-repeat:no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            -webkit-background-size: cover;
+            -o-background-size: cover;
+            -moz-background-size: cover;
+            -ms-background-size: cover;
+        }
+
+        #buttom{
+            background-color:  #A8A8A8;
+        }
+
+        #banquan{
+            position: relative;
+            top: 15px;
+            margin-left: 400px;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+    <div id="myHead" class="container-fluid">
+        <div class="navbar-header">
+            <button class="navbar-toggle" data-toggle="collapse" data-target="#slider-left">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://localhost:8090/hospital/hushiIndex.html" class="navbar-brand">
+                <img src="images/indexImages/logo.jpg" style="width: 50px;height: 50px">
+                <h1 style="margin-left: 50px;margin-top: -50px;font-size: 20px;color: white" >
+                    &nbsp;医&nbsp;院&nbsp;管&nbsp;理&nbsp;系&nbsp;统<br>
+                    <span style="font-size: 11px;color: white">&nbsp;&nbsp;Hospital Management System</span>
+                </h1>
+            </a>
+        </div>
+        <ul class="nav navbar-nav navbar-right nav-ul-right">
+            <li class="col-xs-6"><a href="#" style="white-space:nowrap;"><strong style="color: white" class="welcome">欢迎您，<span style="color: white" id="hushiName"></span></strong></a></li>
+            <li class="col-xs-6"><a href="javascript:void(0)" onclick="logOff()"><span class="glyphicon glyphicon-off" style="color: white"></span></a></li>
+        </ul>
+    </div>
+
+    <div id="leftbar" class="navbar-default navbar-collapse">
+        <ul class="nav" id="slider-left">
+            <li id="item">
+                <div class="panel-group" id="accordion">
+                    <!--<div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">点击1
+                                    <span class="glyphicon glyphicon-menu-right pull-right"></span>
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapse1" class="panel-collapse collapse in">
+                            <div class="panel-body"><a href="#"><span class="glyphicon glyphicon-list-alt"></span>内容1</a></div>
+                            <div class="panel-body"><a href="#"><span class="glyphicon glyphicon-list-alt"></span>内容1</a></div>
+                            <div class="panel-body"><a href="#"><span class="glyphicon glyphicon-list-alt"></span>内容1</a></div>
+                        </div>
+                    </div>-->
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="navbar-default" id="page_main"  >
+        <ol class="breadcrumb">
+            <li><a href="http://localhost:8090/hospital/managerIndex.html">首页</a></li>
+            <li><a href="#"><span id="parentName" name="parentName"></span></a></li>
+            <li><a href="#"><span id="childName" name="childName"></span></a></li>
+        </ol>
+
+        <div id="Amain" style="height: 468px;">
+
+        </div>
+
+        <iframe style="height: 400px" id="if1" name="if1" width="100%"
+                frameborder="no" border="0" marginwidth="0" marginheight=" 0" scrolling="auto" allowtransparency="yes">
+        </iframe>
+    </div>
+
+    <div id="buttom" style="height: 50px;">
+        <footer class="footer" role="contentinfo" id="banquan">
+            &copy; 2019 - 2020 <a href="http://localhost:8090/hospital/hushiIndex.html">熊玲医院管理系统</a>.版权所有.
+        </footer>
+    </div>
+</nav>
+</body>
+</html>

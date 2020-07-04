@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员查看个人信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <style >
+        #UP{
+         display: none;
+        }
+    </style>
+    <script>
+        /*若是直接manager/getManagerInfo获取信息，则查看的一直都是session中的信息，修改后的无法及时更新（session没有更新）*/
+        $(function () {
+            $.getJSON(
+                "manager/getManagerInfo",
+                function (data) {
+                    $.getJSON(
+                        "manager/selectOwn",
+                        {"managerId":data.managerId},
+                        function (data) {
+                            $("#managerId").val(data.managerId);
+                            $("#managerLoginName").val(data.managerLoginName);
+                            $("#managerPassword").val(data.managerPassword);
+                            $("#managerName").val(data.managerName);
+                            $("#managerSex").val(data.managerSex);
+                            $("#managerAge").val(data.managerAge);
+                            $("#managerTitle").val(data.managerTitle);
+                            $("#managerPhone").val(data.managerPhone);
+                        }
+                    )
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div>
+    <div id="about-dialog-text-area">
+        <div class="col-md-12 col-sm-12">
+            <h5 class="text-primary">我的基本信息</h5><hr>
+        </div>
+        <div style="margin-left: 200px;">
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">ID</label>
+                    <input type="text" id="managerId" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">登录名</label>
+                    <input type="text" id="managerLoginName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">密码</label>
+                    <input type="text" id="managerPassword" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">姓名</label>
+                    <input type="text" id="managerName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">性别</label>
+                    <input type="text" id="managerSex" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">年龄</label>
+                    <input type="text" id="managerAge" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">职称</label>
+                    <input type="text" id="managerTitle" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">联系方式</label>
+                    <input type="text" id="managerPhone" style="width: 280px">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

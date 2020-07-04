@@ -1,0 +1,426 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>查看医生信息</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <style>
+        #addDoctor,#updateDoctor,#lookUpDoctor{
+            display: none;
+            margin: auto;
+            left:20%;
+            top:13%;
+            position: fixed;
+            background:#fff;
+            z-index: 10000;
+            font-size: 0;
+        }
+
+        .table th, .table td {/*设置表头，字段均居中*/
+            text-align: center;
+            vertical-align: middle!important;
+        }
+
+    </style>
+
+    <script>
+        myFunction();/*先声明*/
+        $(function () {
+            myFunction(1);//去首页
+        })
+
+        function cancelBtn(){
+            $("#updateDoctor").hide();/*更新医生信息取消键*/
+            $("#addDoctor").hide();/*添加医生信息取消键*/
+            $("#lookUpDoctor").hide();/*查看医生返回键*/
+        }
+
+        function myFunction(pageNum) {
+            $.ajax({
+                url:'doctor/getDoctor',
+                data:{"pageNum":pageNum},
+                type:"POST",
+                success:function (data) {
+                    showDoctorDate(data); //显示医生数据
+                    showPageInfo(data);//显示分页信息
+                    showPageNum(data);//显示分页条数据
+                }
+            })
+        }
+        /*var doctorId=$(aEl).parent().parent().find("td:first").eq(0).text();*/
+        /*查看所有医生信息*/
+        function showDoctorDate(data) {
+            $("#doctor-tb tbody").empty();
+            tbody = $("<tbody>")
+            $.each(data.list, function (index, doctor) {
+                tr = $("<tr>").append($("<td>").text(doctor.doctorId))
+                    .append($("<td>").text(doctor.doctorName))
+                    .append($("<td>").text(doctor.doctorTitle))
+                    .append($("<td>").text(doctor.doctorKeshi))
+                    .append($("<td>").text(doctor.doctorAge))
+                    .append($("<td>").text(doctor.doctorPhone));
+                tdc = $("<td>").html('<a href="javascript:void(0)" onclick="lookUpDoctor(this)">查看</a>&nbsp;' +
+                    '<a href="javascript:void(0)" onclick="updateDoctor(this)">编辑</a>&nbsp;'+
+                    '<a href="javascript:void(0)" onclick="deleteDoctor(this)">删除</a>&nbsp;');
+                tr.append(tdc);
+                tbody.append(tr);
+            });
+            $("#doctor-tb").append(tbody);
+        }
+
+        //显示分页信息
+        function showPageInfo(data){
+            //分页列表清空
+            $("#pageInfo").empty();//清空
+            $("#pageInfo").append("当前第"+data.pageNum+"页,总共"+data.pages+"页");
+        }
+
+        //显示分页条,点击分页能去下一页
+        function showPageNum(data){
+            $("#pageNum").empty();
+            var ul=$("<ul>").addClass("pagination");
+            var firstPageLi=$("<li>").append($("<a>").append("首页").attr("href","#"));//首页
+            var prePageLi = $("<li>").append($("<a>").append("«"));//前一页
+            if(data.hasPreviousPage == false){//如果没有前页的话，首页和前页隐藏
+                firstPageLi.addClass("disabled");
+                prePageLi.addClass("disabled");
+            }else{//为元素添加点击翻页的事件
+                firstPageLi.click(function(){//首页的点击事件
+                    myFunction(1);
+                })
+                prePageLi.click(function(){//前一页的点击事件
+                    myFunction(data.pageNum -1);
+                });
+            }
+
+            var nextPageLi = $("<li>").append($("<a>").append("»"));//后一页
+            var lastPageLi = $("<li>").append($("<a>").append("末页").attr("href","#")); //末页
+            if(data.hasNextPage == false){//如果没有下一页的话，下一页的末页隐藏
+                nextPageLi.addClass("disabled");
+                lastPageLi.addClass("disabled");
+            }else{
+                nextPageLi.click(function(){ //下一页的点击事件
+                    myFunction(data.pageNum +1);
+                });
+                lastPageLi.click(function(){//末页的点击事件
+                    myFunction(data.pages);
+                });
+            }
+
+            ul.append(firstPageLi).append(prePageLi);//添加首页和前一页的提示
+            $.each(data.navigatepageNums,function(index,num){//遍历给ul添加页码提示
+                var numLi = $("<li>").append($("<a>").append(num));
+                if(data.pageNum==num){//按钮加深颜色
+                    numLi.addClass("active");
+                }
+                numLi.click(function () {//页码的点击事件
+                    myFunction(num);
+                });
+                ul.append(numLi);//遍历给ul添加页码提示
+            });
+            ul.append(nextPageLi).append(lastPageLi);//添加下一页和末页的提示
+            var navEle=$("<nav>").append(ul);//把ul加入到nav元素中
+            navEle.appendTo("#pageNum");//把nav元素放到div中
+        }
+
+        /*$("#conAdd").click(function(){} 该方法存在累加绑定问题
+         $("#conAdd").one("click",function () {} 或者 $("#conAdd").off("click").on("click",function () {} 解决
+        （累加绑定：在页面中为一个元素绑定事件，事件执行后页面未刷新且元素还在，然后你再次点击，
+        元素又被绑定个一次点击事件，这样第二次点击就会执行两次，以此类推）
+        */
+        /*添加医生*/
+        function addDoctor(){
+            $("#addDoctor").show()
+            $("#conAdd").one("click",function (){
+                $.ajax({
+                    url : 'doctor/addDoctor',
+                    method : 'POST',
+                    data : $("#addForm").serialize(),
+                    success : function(data) {
+                        if(data=="addOK"){
+                            $("#addDoctor").hide();
+                            myFunction(1);//去首页
+                        }
+                    }
+                });
+            })
+        }
+
+        /*查看选择医生信息(详细信息)*/
+        function lookUpDoctor(aEl) {
+            var doctorId=$(aEl).parent().parent().find("td:first").eq(0).text();
+            $("#lookUpDoctor").show();
+            $.ajax({
+                url:'doctor/lookUpDoctor',
+                data:{'doctorId':doctorId},
+                method : 'POST',
+                success:function(data){
+                    $("#lookId").val(data.doctorId);
+                    $("#lookLoginName").val(data.doctorLoginName);
+                    $("#lookPassword").val(data.doctorPassword);
+                    $("#lookName").val(data.doctorName);
+                    $("#lookSex").val(data.doctorSex);
+                    $("#lookAge").val(data.doctorAge);
+                    $("#lookKeshi").val(data.doctorKeshi);
+                    $("#lookTitle").val(data.doctorTitle);
+                    $("#lookPhone").val(data.doctorPhone);
+                    $("#lookSex").val(data.doctorSex);
+                    $("#lookRolesId").val(data.rolesId);
+                }
+            });
+        }
+
+        /*更新医生信息*/
+        function updateDoctor(aEl){
+        var doctorId=$(aEl).parent().parent().find("td:first").eq(0).text();
+        $.ajax({
+            url:'doctor/lookUpDoctor',
+            data:{'doctorId':doctorId},
+            method : 'POST',
+            success:function(data){
+                $("#doctorId").val(data.doctorId);
+                $("#updateName").val(data.doctorName);
+                $("#updatePassword").val(data.doctorPassword);
+                $("#updateLoginName").val(data.doctorLoginName);
+                $("#updateAge").val(data.doctorAge);
+                $("#updateKeshi").val(data.doctorKeshi);
+                $("#updateTitle").val(data.doctorTitle);
+                $("#updatePhone").val(data.doctorPhone);
+                $("#updateDoctor").show();
+                $("#conUpdate").one("click",function () {
+                    $.ajax({
+                        url : 'doctor/updateDoctor',
+                        method : 'POST',
+                        data : $("#upForm").serialize(),
+                        success : function(data) {
+                            if(data=="updateOK"){
+                                $("#updateDoctor").hide();
+                                myFunction(1);//去首页
+                            }
+                        }
+                    });
+                })
+            }
+        });
+    }
+
+    /*删除选择医生信息*/
+    function deleteDoctor(aEl) {
+        var doctorId=$(aEl).parent().parent().find("td:first").eq(0).text();
+        $.ajax({
+            url:'doctor/deleteDoctor',
+            data:{'doctorId':doctorId},
+            success:function(data){
+                if(data=="deleteOK"){
+                    myFunction(1);//去首页
+                }
+            }
+        });
+    }
+
+    /*根据名字查询某个医生的信息*/
+    $(function () {
+        $("#selectDoctor").one("click",function (){
+            $.ajax({
+                url : 'doctor/selectDoctor',
+                method : 'POST',
+                data : $("#doctorSelectForm").serialize(),
+                success : function(data) {
+                    if(data==""){
+                        alert("该用户不存在")
+                        $("#doctorName").val("");/*刷新输入框*/
+                    }
+                    else{
+                        $(".row").hide();
+                        $("#doctor-tb thead").remove();
+                        thead=$("<thead>")
+                        tr=$("<tr>").append($("<th>").text("医生ID"))
+                            .append($("<th>").text("医生姓名"))
+                            .append($("<th>").text("医生职称"))
+                            .append($("<th>").text("所属科室"))
+                            .append($("<th>").text("医生年龄"))
+                            .append($("<th>").text("联系方式"))
+                            .append($("<th>").text("操作"));
+                        thead.append(tr);
+                        $("#doctor-tb").append(thead);
+                        $("#doctor-tb tbody").remove();
+                        tbody=$("<tbody>")
+                        tr1 = $("<tr>").append($("<td>").text(data.doctorId))
+                            .append($("<td>").text(data.doctorName))
+                            .append($("<td>").text(data.doctorTitle))
+                            .append($("<td>").text(data.doctorKeshi))
+                            .append($("<td>").text(data.doctorAge))
+                            .append($("<td>").text(data.doctorPhone));
+                        tds = $("<td>").html('<a href="javascript:void(0)" onclick="lookUpDoctor(this)">查看</a>&nbsp;' +
+                            '<a href="javascript:void(0)" onclick="updateDoctor(this)">编辑</a>&nbsp;'+
+                            '<a href="javascript:void(0)" onclick="deleteDoctor(this)">删除</a>&nbsp;');
+                        tr1.append(tds);
+                        tbody.append(tr1);
+                        $("#doctor-tb").append(tbody);
+                        $("#doctorName").val("");/*刷新输入框*/
+                    }
+                }
+            });
+        })
+    })
+</script>
+</head>
+<body>
+<div id="doctor">
+    <div class="navbar-default" id="doctorSelectDiv" >
+        <ol class="breadcrumb" style="height: 30px;">
+            <form method="POST" action="/doctor/selectDoctor" id="doctorSelectForm" >
+                <div id="doctorSelect" style="margin-top: -6px">
+                    <input type="text"   name="doctorName" id="doctorName"  placeholder="请输入医生姓名" >
+                    <input type="button" value="查询"  id="selectDoctor" class="button"/>
+                    <input type="button" value="添加"  style="float: right;color: brown;background-color: #faf2cc" onclick="addDoctor()">
+                </div>
+            </form>
+        </ol>
+    </div>
+    <div id="tbDiv">
+        <table id="doctor-tb" class="table table-striped table-hover table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <th>医生ID</th>
+                <th>医生姓名</th>
+                <th>医生职称</th>
+                <th>所属科室</th>
+                <th>医生年龄</th>
+                <th>联系方式</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6" id="pageInfo"> </div><!-- 分页文字信息 -->
+        <div class="col-md-6" id="pageNum" style="float: right;margin-top: -40px"> </div><!-- 分页条信息 -->
+    </div>
+
+    <div id="addDoctor" style="border: 2px solid  #e7e7e7; width: 500px;height: 300px">
+        <h1 style="font-size: 25px;margin-left: 150px">&nbsp;添&nbsp;加&nbsp;医&nbsp;生&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="addForm" action="/doctor/addDoctor" class="form-horizontal"  method="POST" >
+            <div class="form-group">
+                <label for="doctorName" class="col-sm-2 control-label"></label>
+                <div class="col-sm-4">
+                    <input type="text"   class="form-control" id="addName"      name="doctorName"      placeholder="doctorName" >
+                    <input type="text"   class="form-control" id="addLoginName" name="doctorLoginName" placeholder="doctorLoginName" style="margin-top:-35px;  margin-left: 170px">
+                    <input type="text"   class="form-control" id="addPassword"  name="doctorPassword"  placeholder="doctorPassword"  style="margin-top:15px">
+                    <input type="text"   class="form-control" id="addAge"       name="doctorAge"       placeholder="doctorAge"       style="margin-top:-35px; margin-left: 170px">
+                    <select name="doctorSex" id="addSex" class="form-control" style="margin-top:15px">
+                        <option value="">请选择性别</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                    <input type="text"   class="form-control" id="addKeshi"     name="doctorKeshi"     placeholder="doctorKeshi"     style="margin-top:-35px; margin-left: 170px">
+                    <select name="doctorTitle" id="addTitle" class="form-control" style="margin-top:15px">
+                        <option value="">请选择职称</option>
+                        <option value="住院医师">住院医师</option>
+                        <option value="主治医师">主治医师</option>
+                        <option value="副主任医师">副主任医师</option>
+                        <option value="主任医师">主任医师</option>
+                    </select>
+                    <input type="text"   class="form-control" id="addPhone"     name="doctorPhone"     placeholder="doctorPhone"     style="margin-top:-35px; margin-left: 170px">
+                    <button id="conAdd"    type="button" class="btn btn-default" style="margin-left: 60px; margin-top: 10px">确认添加</button>
+                    <button id="cancelAdd" type="button" class="btn btn-default" style="margin-left: 170px; margin-top: -35px"onclick="cancelBtn()">取消</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div id="updateDoctor" style="border: 1px solid; width: 580px;height: 220px">
+        <h1 style="font-size: 25px;margin-left: 180px">&nbsp;修&nbsp;改&nbsp;医&nbsp;生&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <form  id="upForm" >
+            <div class="form-group">
+                <table border="1" cellspacing="0">
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <col width="100px" />
+                    <tr height="40px" align="center" hidden>
+                        <td colspan="6"><input type="text" class="form-control" id="doctorId"  name="doctorId"  style="border: none;" ></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="医生姓名"  style="border: none;"></td>
+                        <td ><input type="text" class="form-control" id="updateName" name="doctorName" style="border: none;"></td>
+                        <td><input type="text" class="form-control" value="登录名"  style="border: none;"></td>
+                        <td ><input type="text" class="form-control" id="updateLoginName" name="doctorLoginName" style="border: none;"></td>
+                        <td><input type="text" class="form-control" value="密码"  style="border: none;"></td>
+                        <td ><input type="text" class="form-control" id="updatePassword" name="doctorPassword" style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="年龄"  style="border: none;"></td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateAge" name="doctorAge"   style="border: none;"></td>
+                        <td><input type="text" class="form-control" value="联系方式"  style="border: none;"></td>
+                        <td colspan="2"><input type="text" class="form-control" id="updatePhone" name="doctorPhone"  style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td><input type="text" class="form-control" value="所属科室"  style="border: none;"></td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateKeshi"  name="doctorKeshi"  style="border: none;"></td>
+                        <td><input type="text" class="form-control" value="职称"  style="border: none;"></td>
+                        <td colspan="2"><input type="text" class="form-control" id="updateTitle"  name="doctorTitle"  style="border: none;"></td>
+                    </tr>
+                    <tr height="40px" align="center">
+                        <td colspan="6">
+                            <button id="conUpdate"    type="button" class="btn btn-default" style="margin-left: -30px; ">确认修改</button>
+                            <button id="cancelUpdate" type="button" class="btn btn-default" style="margin-left: 10px;" onclick="cancelBtn()">取消</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+
+    <div id="lookUpDoctor" style="border: 1px solid; width: 600px;height: 270px">
+        <h1 style="font-size: 25px;margin-left: 200px">&nbsp;医&nbsp;生&nbsp;具&nbsp;体&nbsp;信&nbsp;息&nbsp;</h1><br>
+        <table border="1" cellspacing="0">
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <col width="100px" />
+            <tr height="35px" align="center">
+                <td><input type="text" class="form-control" value="医生姓名"  style="border: none;"></td>
+                <td><input type="text" class="form-control" id="lookName" name="doctorName" style="border: none"></td>
+                <td><input type="text" class="form-control" value="医生ID"  style="border: none;"></td>
+                <td colspan="3"><input type="text" class="form-control" id="lookId"  name="doctorId" style="border: none"></td>
+            </tr>
+            <tr height="35px" align="center">
+                <td><input type="text" class="form-control" value="性别"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookSex" name="doctorSex" style="border: none;"></td>
+                <td><input type="text" class="form-control" value="年龄"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookAge"  name="doctorAge"   style="border: none;"></td>
+            </tr>
+            <tr height="35px" align="center">
+                <td><input type="text" class="form-control" value="所属科室"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookKeshi"  name="doctorKeshi" style="border: none"></td>
+                <td><input type="text" class="form-control" value="职称"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookTitle"  name="doctorTitle"  style="border: none"></td>
+            </tr>
+            <tr height="35px" align="center">
+                <td><input type="text" class="form-control" value="登录名"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookLoginName" name="doctorLoginName"  style="border: none;"></td>
+                <td><input type="text" class="form-control" value="密码"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookPassword"  name="doctorPassword" style="border: none;"></td>
+            </tr>
+            <tr height="35px" align="center">
+                <td><input type="text" class="form-control" value="联系方式"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookPhone"     name="doctorPhone"  style="border: none"></td>
+                <td><input type="text" class="form-control" value="角色ID"  style="border: none;"></td>
+                <td colspan="2"><input type="text" class="form-control" id="lookRolesId"   name="rolesId" style="border: none"></td>
+            </tr>
+            <tr  height="35px" align="center">
+                <td colspan="6"><button id="cancelLook" type="button" class="btn btn-default"  onclick="cancelBtn()">返回</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.HushiMapper">
+    <select id="login" resultType="hushi" parameterType="Hushi">
+        SELECT * FROM hushi WHERE hushiLoginName=#{hushiLoginName} AND hushiPassword=#{hushiPassword}
+    </select>
+
+    <select id="getHushiPermission" resultType="Permission" >
+        SELECT p.* FROM hushi h,rolesPermission rp,permission p
+        WHERE rp.permissionId=p.permissionId
+        AND h.rolesId=rp.rolesId
+        AND h.rolesId=#{rolesId}
+        AND h.hushiId=#{hushiId}
+    </select>
+
+    <select id="getHushi" resultType="hushi">
+        SELECT * FROM hushi
+    </select>
+
+    <insert id="addHushi" parameterType="hushi">
+        INSERT INTO hushi(hushiId,hushiName,hushiLoginName,hushiPassword,hushiSex,hushiAge,hushiPhone,hushiTitle)
+        VALUES(#{hushiId,jdbcType=VARCHAR},#{hushiName,jdbcType=VARCHAR},#{hushiLoginName,jdbcType=VARCHAR},
+        #{hushiPassword,jdbcType=VARCHAR},#{hushiSex,jdbcType=VARCHAR},#{hushiAge,jdbcType=INTEGER},
+        #{hushiTitle,jdbcType=VARCHAR},#{hushiPhone,jdbcType=VARCHAR})
+    </insert>
+
+    <select id="lookUpHushi" resultType="hushi" parameterType="string">
+        SELECT * FROM hushi WHERE hushiId=#{hushiId}
+    </select>
+
+    <insert id="deleteHushi" parameterType="string">
+        DELETE FROM hushi WHERE hushiId=#{hushiId}
+    </insert>
+
+    <update id="updateHushi" parameterType="hushi">
+        UPDATE hushi SET hushiName=#{hushiName},hushiLoginName=#{hushiLoginName},
+                         hushiPassword=#{hushiPassword},hushiAge=#{hushiAge} ,
+                         hushiTitle=#{hushiTitle},hushiPhone=#{hushiPhone}
+        WHERE hushiId=#{hushiId}
+    </update>
+
+    <select id="selectHushi" resultType="hushi" parameterType="string">
+        SELECT * FROM hushi WHERE hushiName=#{hushiName}
+    </select>
+
+    <update id="updateOwn" parameterType="hushi">
+        UPDATE hushi SET hushiName=#{hushiName},hushiLoginName=#{hushiLoginName},
+                         hushiAge=#{hushiAge},hushiTitle=#{hushiTitle},hushiPhone=#{hushiPhone}
+        WHERE hushiId=#{hushiId}
+    </update>
+
+    <update id="changePassword" parameterType="hushi">
+        UPDATE hushi SET hushiPassword=#{hushiPassword} WHERE hushiId=#{hushiId}
+    </update>
+
+    <select id="selectOwn" resultType="hushi" parameterType="Hushi">
+        SELECT * FROM hushi WHERE hushiId=#{hushiId}
+    </select>
+</mapper>

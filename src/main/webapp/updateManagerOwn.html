@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>管理员个人信息更新</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.js"></script>
+    <script>
+        /*先根据登录时的Id查询该用户的所有信息，之后再修改*/
+        $(function () {
+            $.getJSON(
+                "manager/getManagerInfo",
+                function (data) {
+                    $.getJSON(
+                        "manager/selectOwn",
+                        {"managerId":data.managerId},
+                        function (data) {
+                            $("#managerId").val(data.managerId);
+                            $("#managerLoginName").val(data.managerLoginName);
+                            $("#managerName").val(data.managerName);
+                            $("#managerAge").val(data.managerAge);
+                            $("#managerTitle").val(data.managerTitle);
+                            $("#managerPhone").val(data.managerPhone);
+                            $("#update").click(function () {
+                                $.ajax({
+                                    url : 'manager/updateOwn',
+                                    method : 'POST',
+                                    data : $("#updateOwn").serialize(),
+                                    success : function(data) {
+                                        if(data=="updateOK"){
+                                            window.location.href="viewManagerOwn.html";
+                                        }
+                                    }
+                                });
+                            })
+                        }
+                    )
+                }
+            )
+        })
+    </script>
+</head>
+<body>
+<div id="about-dialog-text-area" >
+    <div class="col-md-12 col-sm-12">
+        <h5 class="text-primary">基本信息修改</h5><hr>
+    </div>
+    <div id="outter" style="margin-left: 200px">
+        <form id="updateOwn" method="POST" action="/manager/updateOwn">
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <input type="hidden" id="managerId"  name="managerId" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">登录名</label>
+                    <input type="text" id="managerLoginName" name="managerLoginName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">姓名</label>
+                    <input type="text" id="managerName" name="managerName" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">年龄</label>
+                    <input type="text" id="managerAge" name="managerAge" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">职称</label>
+                    <input type="text" id="managerTitle" name="managerTitle" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <label class="input-group-addon" style="width: 100px">联系方式</label>
+                    <input type="text" id="managerPhone" name="managerPhone" style="width: 280px">
+                </div>
+            </div>
+            <div class="col-md-12 col-sm-12 form-group">
+                <div class="input-group">
+                    <input type="button" id="update" value="修改" style="margin-left: 180px">
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

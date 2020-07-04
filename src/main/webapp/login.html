@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=yes,
+     initial-scale=0.3, maxmum-scale=1.0, minimum-scale=0.3">
+    <title>登录页面</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/jquery-3.3.1.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#managerLogin").click(function(){
+                $("#head").hide();
+                $("#managerL").show();
+                $("#manalogin").click(function(){
+                    $("#managerform").submit();
+                })
+            })
+        })
+
+        $(document).ready(function(){
+            $("#doctorLogin").click(function(){
+                $("#head").hide();
+                $("#doctorL").show();
+                $("#doclogin").click(function(){
+                    $("#doctorform").submit();
+                })
+            })
+        })
+
+        $(document).ready(function(){
+            $("#hushiLogin").click(function(){
+                $("#head").hide();
+                $("#hushiL").show();
+                $("#hushlogin").click(function(){
+                    $("#hushiform").submit();
+                })
+            })
+        })
+
+        (function(doc, win) {
+            var docEl = doc.documentElement,
+                resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+                recalc = function() {
+                    var clientWidth = docEl.clientWidth;
+                    if (!clientWidth) return;
+                    if(clientWidth >= 2560){
+                        docEl.style.fontSize = '200px';
+                    }else if(clientWidth <= 600){
+                        docEl.style.fontSize = '32px';
+                    }else{
+                        docEl.style.fontSize = 100 * (clientWidth / 1920) + 'px';
+                    }
+                };
+            if (!doc.addEventListener) return;
+            win.addEventListener(resizeEvt, recalc, false);
+            doc.addEventListener('DOMContentLoaded', recalc, false);
+        })(document, window);
+    </script>
+    <style>
+        body{
+            background:url(images/loginImages/beijing.jpg ) no-repeat;
+            background-position: center 0;
+            background-repeat:no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+            -webkit-background-size: cover;
+            -o-background-size: cover;
+            -moz-background-size: cover;
+            -ms-background-size: cover;
+        }
+        #outter{
+            position: relative;
+            margin: 0 auto;
+            top: 80px;
+            left: 400px;
+            color: white;
+        }
+
+        #managerL,#doctorL,#hushiL{
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+<div id="outter">
+   <div id="head">
+       <h1 >医&nbsp;院&nbsp;管&nbsp;理&nbsp;系&nbsp;统</h1><br>
+       <div id="manager">
+           <img src="images/loginImages/guanliyuan.jpg" style="width: 50px;height: 50px">&nbsp;&nbsp;&nbsp;&nbsp;
+           <button id="managerLogin"  class="btn btn-primary" type="button">管理员登录</button>
+       </div><br>
+       <div id="doctor">
+           <img src="images/loginImages/yisheng.jpg" style="width: 50px;height: 50px">&nbsp;&nbsp;&nbsp;&nbsp;
+           <button id="doctorLogin"  class="btn btn-primary" type="button">医生登录</button>
+       </div><br>
+       <div id="hushi">
+           <img src="images/loginImages/hushi.jpg" style="width: 50px;height: 50px">&nbsp;&nbsp;&nbsp;&nbsp;
+           <button id="hushiLogin"  class="btn btn-primary" type="button">护士登录</button>
+       </div><br>
+   </div>
+
+    <div id="buttom">
+        <div id="managerL">
+            <form  method="POST" action="manager/login" id="managerform" class="navbar-form navbar-left"><br>
+                <h1 >&nbsp;&nbsp;&nbsp;&nbsp;管&nbsp;理&nbsp;员&nbsp;登&nbsp;录</h1><br>
+                <div class="form-group">
+                    <label for="managerLoginName">用户名&nbsp;</label>
+                    <input type="text" name="managerLoginName" id="managerLoginName" class="form-control" >
+                </div><br><br>
+                <div class="form-group">
+                    <label for="managerPassword">密&nbsp;&nbsp;&nbsp;码&nbsp;&nbsp;</label>
+                    <input type="password" name="managerPassword" id="managerPassword"  class="form-control" >
+                </div><br><br>
+                <button id="manalogin"  style="margin-left: 120px;width: 50px" class="btn btn-primary" type="button">登录</button>
+            </form>
+        </div>
+
+        <div id="doctorL">
+            <form  method="POST" action="doctor/login" id="doctorform" class="navbar-form navbar-left"><br>
+                <h1 >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;医&nbsp;生&nbsp;&nbsp;登&nbsp;录</h1><br>
+                <div class="form-group">
+                    <label for="doctorLoginName">用户名&nbsp;</label>
+                    <input type="text" name="doctorLoginName" id="doctorLoginName" class="form-control" >
+                </div><br><br>
+                <div class="form-group">
+                    <label for="managerPassword">密&nbsp;&nbsp;&nbsp;码&nbsp;&nbsp;</label>
+                    <input type="password" name="doctorPassword" id="doctorPassword"  class="form-control" >
+                </div><br><br>
+                <button id="doclogin"  style="margin-left: 120px;width: 50px" class="btn btn-primary" type="button">登录</button>
+            </form>
+        </div>
+
+        <div id="hushiL">
+            <form  method="POST" action="hushi/login" id="hushiform" class="navbar-form navbar-left"><br>
+                <h1 >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;护&nbsp;士&nbsp;登&nbsp;录</h1><br>
+                <div class="form-group">
+                    <label for="hushiLoginName">用户名&nbsp;</label>
+                    <input type="text" name="hushiLoginName" id="hushiLoginName" class="form-control" >
+                </div><br><br>
+                <div class="form-group">
+                    <label for="managerPassword">密&nbsp;&nbsp;&nbsp;码&nbsp;&nbsp;</label>
+                    <input type="password" name="hushiPassword" id="hushiPassword"  class="form-control" >
+                </div><br><br>
+                <button id="hushlogin"  style="margin-left: 120px;width: 50px" class="btn btn-primary" type="button">登录</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

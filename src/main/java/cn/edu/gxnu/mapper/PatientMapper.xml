@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.PatientMapper">
+    <select id="getPatient" resultType="patient">
+        SELECT * FROM patient
+    </select>
+
+    <insert id="addPatient" parameterType="patient">
+        INSERT INTO patient(patientId,patientName,patientSex,patientAge,phone,zhuYuanRiQi,chuYuanRiQi,
+        zhengZhuang,doctorName,doctorId,hushiName,hushiId,bingfangNo,bingchuangNo,address,guomin,yizhu,
+        chafangshijian,dazhenshijian,medicine,shoushushijian)
+        VALUES(#{patientId,jdbcType=VARCHAR},#{patientName,jdbcType=VARCHAR},#{patientSex,jdbcType=VARCHAR},
+        #{patientAge,jdbcType=INTEGER},#{phone,jdbcType=VARCHAR},#{zhuYuanRiQi,jdbcType=DATE},
+        #{chuYuanRiQi,jdbcType=DATE},#{zhengZhuang,jdbcType=VARCHAR},#{doctorName,jdbcType=VARCHAR},
+        #{doctorId,jdbcType=VARCHAR},#{hushiName,jdbcType=VARCHAR},#{hushiId,jdbcType=VARCHAR},
+        #{bingfangNo,jdbcType=VARCHAR},#{bingchuangNo,jdbcType=VARCHAR},#{address,jdbcType=VARCHAR},
+        #{guomin,jdbcType=VARCHAR},#{yizhu,jdbcType=VARCHAR},#{chafangshijian,jdbcType=VARCHAR},
+        #{dazhenshijian,jdbcType=VARCHAR},#{medicine,jdbcType=VARCHAR},#{shoushushijian,jdbcType=TIMESTAMP})
+    </insert>
+
+    <select id="lookUpPatient" resultType="patient" parameterType="string">
+        SELECT * FROM patient WHERE patientId=#{patientId}
+    </select>
+
+    <insert id="deletePatient" parameterType="string">
+        DELETE FROM patient WHERE patientId=#{patientId}
+    </insert>
+
+    <update id="updatePatient" parameterType="patient">
+        UPDATE patient SET patientAge=#{patientAge},phone=#{phone}, zhuYuanRiQi=#{zhuYuanRiQi},
+                           chuYuanRiQi=#{chuYuanRiQi},shoushushijian=#{shoushushijian},
+                           bingchuangNo=#{bingchuangNo},bingfangNo=#{bingfangNo}
+        WHERE patientId=#{patientId}
+    </update>
+
+    <update id="addJilu" parameterType="patient">
+        UPDATE patient SET bingchengjilu=#{bingchengjilu}
+        WHERE patientId=#{patientId}
+    </update>
+
+    <update id="hushiUpdatePatient" parameterType="patient">
+        UPDATE patient SET patientAge=#{patientAge},phone=#{phone}, chafangshijian=#{chafangshijian},
+        dazhenshijian=#{dazhenshijian},bingchuangNo=#{bingchuangNo},bingfangNo=#{bingfangNo}
+        WHERE patientId=#{patientId}
+    </update>
+
+    <select id="selectPatient" resultType="patient" parameterType="string">
+        SELECT * FROM patient WHERE patientName=#{patientName}
+    </select>
+
+    <select id="doctorSelectPatient" resultType="patient" parameterType="string">
+        SELECT * FROM patient WHERE patientName=#{patientName} AND doctorId=#{doctorId}
+    </select>
+
+    <select id="hushiSelectPatient" resultType="patient" parameterType="string">
+        SELECT * FROM patient WHERE patientName=#{patientName} AND hushiId=#{hushiId}
+    </select>
+
+    <select id="doctorViewPatient" resultType="patient">
+        SELECT * FROM patient WHERE doctorName=#{doctorName} AND doctorId=#{doctorId}
+    </select>
+
+    <select id="hushiViewPatient" resultType="patient">
+        SELECT * FROM patient WHERE hushiName=#{hushiName} AND hushiId=#{hushiId}
+    </select>
+</mapper>

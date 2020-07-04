@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.ManagerMapper">
+    <select id="login" resultType="manager" parameterType="Manager">
+        SELECT * FROM manager WHERE managerLoginName=#{managerLoginName} AND managerPassword=#{managerPassword}
+    </select>
+
+    <select id="getManagerPermission"  resultType="Permission" >
+        SELECT p.* FROM manager m,rolesPermission rp,permission p
+        WHERE rp.permissionId=p.permissionId
+        AND m.rolesId=rp.rolesId
+        AND m.rolesId=#{rolesId}
+        AND m.managerId=#{managerId}
+    </select>
+
+    <update id="updateOwn" parameterType="manager">
+        UPDATE manager SET managerName=#{managerName},managerLoginName=#{managerLoginName},
+        managerAge=#{managerAge},managerPhone=#{managerPhone},managerTitle=#{managerTitle}
+        WHERE managerId=#{managerId}
+    </update>
+
+    <update id="changePwd" parameterType="manager">
+        UPDATE manager SET managerPassword=#{managerPassword} WHERE managerId=#{managerId}
+    </update>
+
+    <select id="selectOwn" resultType="manager" parameterType="Manager">
+        SELECT * FROM manager WHERE managerId=#{managerId}
+    </select>
+
+</mapper>

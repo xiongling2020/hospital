@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.edu.gxnu.mapper.BingfangMapper">
+    <select id="getBingfang" resultType="bingfang">
+        SELECT * FROM bingfang
+    </select>
+
+    <insert id="addBingfang" parameterType="bingfang">
+        INSERT INTO bingfang(bingfangId,bingfangNo,keshiId,keshiName,zongchuangshu,kongchuangshu,price)
+        VALUES(#{bingfangId,jdbcType=VARCHAR},#{bingfangNo,jdbcType=VARCHAR},#{keshiId,jdbcType=VARCHAR},
+        #{keshiName,jdbcType=VARCHAR},#{zongchuangshu,jdbcType=INTEGER},#{kongchuangshu,jdbcType=INTEGER},#{price,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="deleteBingfang" parameterType="string">
+        DELETE FROM bingfang WHERE bingfangId=#{bingfangId}
+    </insert>
+
+    <update id="updateBingfang" parameterType="bingfang">
+        UPDATE bingfang SET zongchuangshu=#{zongchuangshu},kongchuangshu=#{kongchuangshu},price=#{price}
+        WHERE bingfangId=#{bingfangId}
+    </update>
+
+    <select id="selectBingfang" resultType="bingfang" parameterType="string">
+        SELECT * FROM bingfang WHERE bingfangId=#{bingfangId}
+    </select>
+</mapper>
